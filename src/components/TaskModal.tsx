@@ -668,7 +668,7 @@ export function TaskModal({ task, isOpen, onClose, defaultStatus = 'created' }: 
                 {/* Существующие вложения */}
                 {attachments.length > 0 && (
                   <div className="space-y-2">
-                    <div className="text-sm font-medium text-gray-700 uppercase px-3 py-1 rounded">СУЩЕСТВУЮЩИЕ ВЛОЖЕНИЯ:</div>
+                    <div className="text-sm font-medium text-gray-700 uppercase px-3 py-1 rounded">ПРИКРЕПЛЁННЫЕ ВЛОЖЕНИЯ:</div>
                     {attachments.map((attachment) => (
                       <div key={attachment.id} className="flex items-center justify-between p-3 rounded-xl border" style={{ backgroundColor: '#a4d2fc', borderColor: '#b6c2fc' }}>
                         <div className="flex items-center space-x-2">
