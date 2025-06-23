@@ -159,7 +159,7 @@ export function Analytics() {
         {/* Распределение по статусам */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-6">
           <h3 className="text-md md:text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
-            <PieChart className="w-4 h-4 md:w-5 md:h-5" style={{ color: '#fbffab' }} />
+            <PieChart className="w-4 h-4 md:w-5 md:h-5" style={{ color: '#f8fc97' }} />
             <span className="uppercase">РАСПРЕДЕЛЕНИЕ ПО СТАТУСАМ</span>
           </h3>
           <div className="space-y-3 md:space-y-4">
@@ -210,7 +210,7 @@ export function Analytics() {
                   <div 
                     className="h-2 rounded-full" 
                     style={{ 
-                      background: 'linear-gradient(90deg, #c4fcc2 0%, #c4fcc2 100%)',
+                      background: 'linear-gradient(90deg, #d2a2fc 0%, #d2a2fc 100%)',
                       width: `${totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0}%` 
                     }}
                   ></div>
@@ -262,7 +262,7 @@ export function Analytics() {
       {/* Производительность пользователей */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-6 mb-6 md:mb-8">
         <h3 className="text-md md:text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
-          <Users className="w-4 h-4 md:w-5 md:h-5" style={{ color: '#fab9e2' }} />
+          <Users className="w-4 h-4 md:w-5 md:h-5" style={{ color: '#ffcfda' }} />
           <span className="uppercase">ПРОИЗВОДИТЕЛЬНОСТЬ ПОЛЬЗОВАТЕЛЕЙ</span>
         </h3>
         
