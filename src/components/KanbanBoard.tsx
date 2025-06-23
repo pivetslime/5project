@@ -179,7 +179,7 @@ export function KanbanBoard() {
     );
   }
 
-  // Десктопная версия - все колонки видны с увеличенными отступами
+  // Десктопная версия - все колонки видны с увеличенными отступами и полной высотой
   return (
     <div className="h-full overflow-hidden">
       <DndContext
@@ -195,17 +195,18 @@ export function KanbanBoard() {
             );
 
             return (
-              <KanbanColumn
-                key={column.id}
-                id={column.id}
-                title={column.title}
-                tasks={columnTasks}
-                users={users}
-                onTaskClick={handleTaskClick}
-                onCreateTask={() => handleCreateTask(column.id)}
-                color={column.color}
-                isMobile={false}
-              />
+              <div key={column.id} className="flex-1 max-w-md h-full">
+                <KanbanColumn
+                  id={column.id}
+                  title={column.title}
+                  tasks={columnTasks}
+                  users={users}
+                  onTaskClick={handleTaskClick}
+                  onCreateTask={() => handleCreateTask(column.id)}
+                  color={column.color}
+                  isMobile={false}
+                />
+              </div>
             );
           })}
         </div>

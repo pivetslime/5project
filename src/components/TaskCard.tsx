@@ -48,9 +48,9 @@ export function TaskCard({ task, users, onClick, className = '' }: TaskCardProps
     isBefore(new Date(task.deadline), new Date(Date.now() + 2 * 24 * 60 * 60 * 1000));
 
   const priorityColors = {
-    high: 'bg-[#FFE1E7] border-[#FFE1E7]',
-    medium: 'bg-[#FCFCE9] border-[#FCFCE9]',
-    low: 'bg-[#DFFAD7] border-[#DFFAD7]',
+    high: 'bg-[#FFE1E7] border-[#FFB3BA]',
+    medium: 'bg-[#FCFCE9] border-[#FFDFBA]',
+    low: 'bg-[#DFFAD7] border-[#BAFFC9]',
   };
 
   const priorityLabels = {
@@ -122,19 +122,25 @@ export function TaskCard({ task, users, onClick, className = '' }: TaskCardProps
       className={`bg-white rounded-xl shadow-sm border-2 p-4 cursor-pointer hover:shadow-md transition-all duration-200 hover:border-[#CFE8FF] group ${priorityColors[task.priority]} ${className} ${
         isDragging ? 'opacity-50 rotate-3 z-50' : ''
       }`}
+      style={{
+        ...style,
+        maxWidth: '100%',
+        wordWrap: 'break-word',
+        overflow: 'hidden'
+      }}
     >
       {/* Заголовок */}
       <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center space-x-2">
-          <StatusIcon className={`w-4 h-4 ${
+        <div className="flex items-center space-x-2 flex-1 min-w-0">
+          <StatusIcon className={`w-4 h-4 flex-shrink-0 ${
             task.status === 'completed' ? 'text-green-600' :
             task.status === 'in-progress' ? 'text-blue-600' : 'text-gray-500'
           }`} />
-          <span className={`px-2 py-1 rounded-full text-xs font-medium border ${priorityColors[task.priority]} ${priorityTextColors[task.priority]}`}>
+          <span className={`px-2 py-1 rounded-full text-xs font-medium border flex-shrink-0 ${priorityColors[task.priority]} ${priorityTextColors[task.priority]}`}>
             {priorityLabels[task.priority]}
           </span>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 flex-shrink-0">
           <button
             onClick={handlePinClick}
             className={`p-1 rounded hover:bg-white/50 transition-colors ${
@@ -153,9 +159,9 @@ export function TaskCard({ task, users, onClick, className = '' }: TaskCardProps
       </div>
 
       {/* Название и описание */}
-      <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 uppercase text-sm">{task.title}</h3>
+      <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 uppercase text-sm break-words">{task.title}</h3>
       {task.description && (
-        <p className="text-xs text-gray-600 mb-3 line-clamp-2 leading-relaxed">
+        <p className="text-xs text-gray-600 mb-3 line-clamp-2 leading-relaxed break-words">
           {formatDescription(task.description)}
         </p>
       )}
@@ -164,7 +170,7 @@ export function TaskCard({ task, users, onClick, className = '' }: TaskCardProps
       {latestComment && commentAuthor && (
         <div className="bg-gray-100 rounded-lg p-2 mb-3 border border-gray-200">
           <div className="flex items-center space-x-2 mb-1">
-            <div className="w-3 h-3 rounded-full overflow-hidden">
+            <div className="w-3 h-3 rounded-full overflow-hidden flex-shrink-0">
               {commentAuthor.avatar ? (
                 <img
                   src={commentAuthor.avatar}
@@ -177,11 +183,11 @@ export function TaskCard({ task, users, onClick, className = '' }: TaskCardProps
                 </div>
               )}
             </div>
-            <span className="text-xs font-medium text-gray-700 uppercase">
+            <span className="text-xs font-medium text-gray-700 uppercase truncate">
               {commentAuthor.firstName} {commentAuthor.lastName}:
             </span>
           </div>
-          <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed">
+          <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed break-words">
             {latestComment.content.length > 50 
               ? latestComment.content.substring(0, 50) + '...' 
               : latestComment.content}
@@ -194,8 +200,8 @@ export function TaskCard({ task, users, onClick, className = '' }: TaskCardProps
         <div className={`flex items-center space-x-1 mb-3 text-xs ${
           isOverdue ? 'text-red-600' : isDueSoon ? 'text-orange-600' : 'text-gray-500'
         }`}>
-          <Calendar className="w-4 h-4" />
-          <span className="uppercase">СРОК {format(new Date(task.deadline), 'dd.MM.yyyy')}</span>
+          <Calendar className="w-4 h-4 flex-shrink-0" />
+          <span className="uppercase truncate">СРОК {format(new Date(task.deadline), 'dd.MM.yyyy')}</span>
           {isOverdue && <span className="text-red-600 font-medium uppercase">(ПРОСРОЧЕНО)</span>}
           {isDueSoon && <span className="text-orange-600 font-medium uppercase">(СКОРО ИСТЕКАЕТ СРОК)</span>}
         </div>
@@ -229,7 +235,7 @@ export function TaskCard({ task, users, onClick, className = '' }: TaskCardProps
 
         {/* Назначенные пользователи */}
         {assignees.length > 0 && (
-          <div className="flex items-center space-x-1">
+          <div className="flex items-center space-x-1 flex-shrink-0">
             <div className="flex -space-x-1">
               {assignees.slice(0, 3).map((assignee, index) => (
                 <div

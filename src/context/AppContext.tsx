@@ -38,6 +38,9 @@ interface AppContextType extends AppState {
   redoLastAction: () => void;
   canUndo: boolean;
   canRedo: boolean;
+  addComment: (taskId: string, content: string) => void;
+  updateComment: (taskId: string, commentId: string, content: string) => void;
+  deleteComment: (taskId: string, commentId: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -73,7 +76,14 @@ type Action =
   | { type: 'DELETE_BOARD'; payload: string }
   | { type: 'ADD_NOTIFICATION'; payload: Notification }
   | { type: 'UPDATE_NOTIFICATION'; payload: { id: string; updates: Partial<Notification> } }
-  | { type: 'DELETE_NOTIFICATION'; payload: string };
+  | { type: 'DELETE_NOTIFICATION'; payload: string }
+  | { type: 'RESTORE_STATE'; payload: AppState };
+
+interface HistoryAction {
+  type: 'ADD_TASK' | 'UPDATE_TASK' | 'DELETE_TASK' | 'ADD_USER' | 'DELETE_USER' | 'ADD_BOARD' | 'DELETE_BOARD';
+  payload: any;
+  inverse?: any;
+}
 
 function appReducer(state: AppState, action: Action): AppState {
   switch (action.type) {
@@ -198,6 +208,8 @@ function appReducer(state: AppState, action: Action): AppState {
         ...state,
         notifications: state.notifications.filter(notification => notification.id !== action.payload),
       };
+    case 'RESTORE_STATE':
+      return action.payload;
     default:
       return state;
   }
@@ -213,7 +225,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [currentBoardId, setCurrentBoardId] = useLocalStorage<string | null>('planify-current-board', null);
   const [savedCredentials, setSavedCredentials] = useLocalStorage<{ username: string; password: string } | null>('planify-saved-credentials', null);
   const [lastView, setLastViewStorage] = useLocalStorage<string>('planify-last-view', 'board');
-  const [actionHistory, setActionHistory] = useLocalStorage<any[]>('planify-action-history', []);
+  const [actionHistory, setActionHistory] = useLocalStorage<HistoryAction[]>('planify-action-history', []);
   const [historyIndex, setHistoryIndex] = useLocalStorage<number>('planify-history-index', -1);
 
   // Генерация уникального кода доски
@@ -363,28 +375,92 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [state.currentBoardId, setCurrentBoardId]);
 
   // Функции для истории действий
-  const saveToHistory = (action: any) => {
+  const saveToHistory = (action: HistoryAction) => {
     const newHistory = actionHistory.slice(0, historyIndex + 1);
     newHistory.push(action);
+    
+    // Ограничиваем историю 50 действиями для экономии памяти
+    if (newHistory.length > 50) {
+      newHistory.shift();
+    } else {
+      setHistoryIndex(historyIndex + 1);
+    }
+    
     setActionHistory(newHistory);
-    setHistoryIndex(newHistory.length - 1);
   };
 
   const undoLastAction = () => {
-    if (historyIndex > 0) {
+    if (historyIndex >= 0 && actionHistory[historyIndex]) {
+      const action = actionHistory[historyIndex];
+      
+      switch (action.type) {
+        case 'ADD_TASK':
+          dispatch({ type: 'DELETE_TASK', payload: action.payload.id });
+          break;
+        case 'DELETE_TASK':
+          if (action.inverse) {
+            dispatch({ type: 'ADD_TASK', payload: action.inverse });
+          }
+          break;
+        case 'UPDATE_TASK':
+          if (action.inverse) {
+            dispatch({ type: 'UPDATE_TASK', payload: { id: action.payload.id, updates: action.inverse } });
+          }
+          break;
+        case 'ADD_USER':
+          dispatch({ type: 'DELETE_USER', payload: action.payload.id });
+          break;
+        case 'DELETE_USER':
+          if (action.inverse) {
+            dispatch({ type: 'ADD_USER', payload: action.inverse });
+          }
+          break;
+        case 'ADD_BOARD':
+          dispatch({ type: 'DELETE_BOARD', payload: action.payload.id });
+          break;
+        case 'DELETE_BOARD':
+          if (action.inverse) {
+            dispatch({ type: 'ADD_BOARD', payload: action.inverse });
+          }
+          break;
+      }
+      
       setHistoryIndex(historyIndex - 1);
-      // Здесь можно добавить логику отмены действий
     }
   };
 
   const redoLastAction = () => {
     if (historyIndex < actionHistory.length - 1) {
       setHistoryIndex(historyIndex + 1);
-      // Здесь можно добавить логику повтора действий
+      const action = actionHistory[historyIndex + 1];
+      
+      switch (action.type) {
+        case 'ADD_TASK':
+          dispatch({ type: 'ADD_TASK', payload: action.payload });
+          break;
+        case 'DELETE_TASK':
+          dispatch({ type: 'DELETE_TASK', payload: action.payload });
+          break;
+        case 'UPDATE_TASK':
+          dispatch({ type: 'UPDATE_TASK', payload: action.payload });
+          break;
+        case 'ADD_USER':
+          dispatch({ type: 'ADD_USER', payload: action.payload });
+          break;
+        case 'DELETE_USER':
+          dispatch({ type: 'DELETE_USER', payload: action.payload });
+          break;
+        case 'ADD_BOARD':
+          dispatch({ type: 'ADD_BOARD', payload: action.payload });
+          break;
+        case 'DELETE_BOARD':
+          dispatch({ type: 'DELETE_BOARD', payload: action.payload });
+          break;
+      }
     }
   };
 
-  const canUndo = historyIndex > 0;
+  const canUndo = historyIndex >= 0;
   const canRedo = historyIndex < actionHistory.length - 1;
 
   // Функция добавления уведомления
@@ -618,6 +694,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const existingTask = state.tasks.find(t => t.id === taskId);
     if (!existingTask) return;
 
+    // Сохраняем предыдущее состояние для отмены
+    const previousState = { ...existingTask };
+    
     dispatch({ type: 'UPDATE_TASK', payload: { id: taskId, updates } });
 
     // Проверяем изменения для уведомлений
@@ -662,12 +741,23 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       });
     }
 
-    saveToHistory({ type: 'UPDATE_TASK', payload: { id: taskId, updates } });
+    saveToHistory({ 
+      type: 'UPDATE_TASK', 
+      payload: { id: taskId, updates },
+      inverse: previousState
+    });
   };
 
   const deleteTask = (taskId: string) => {
-    dispatch({ type: 'DELETE_TASK', payload: taskId });
-    saveToHistory({ type: 'DELETE_TASK', payload: taskId });
+    const taskToDelete = state.tasks.find(t => t.id === taskId);
+    if (taskToDelete) {
+      dispatch({ type: 'DELETE_TASK', payload: taskId });
+      saveToHistory({ 
+        type: 'DELETE_TASK', 
+        payload: taskId,
+        inverse: taskToDelete
+      });
+    }
   };
 
   const toggleTaskPin = (taskId: string) => {
@@ -675,6 +765,46 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (task) {
       updateTask(taskId, { isPinned: !task.isPinned });
     }
+  };
+
+  // Функции для комментариев (только для администраторов)
+  const addComment = (taskId: string, content: string) => {
+    if (state.currentUser?.role !== 'admin') return;
+    
+    const task = state.tasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    const newComment = {
+      id: Date.now().toString(),
+      userId: state.currentUser.id,
+      content,
+      createdAt: new Date().toISOString(),
+    };
+
+    const updatedComments = [...task.comments, newComment];
+    updateTask(taskId, { comments: updatedComments });
+  };
+
+  const updateComment = (taskId: string, commentId: string, content: string) => {
+    if (state.currentUser?.role !== 'admin') return;
+    
+    const task = state.tasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    const updatedComments = task.comments.map(comment =>
+      comment.id === commentId ? { ...comment, content } : comment
+    );
+    updateTask(taskId, { comments: updatedComments });
+  };
+
+  const deleteComment = (taskId: string, commentId: string) => {
+    if (state.currentUser?.role !== 'admin') return;
+    
+    const task = state.tasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    const updatedComments = task.comments.filter(comment => comment.id !== commentId);
+    updateTask(taskId, { comments: updatedComments });
   };
 
   const addUser = async (userData: Omit<User, 'id' | 'createdAt' | 'boardIds'>): Promise<{ success: boolean; message: string }> => {
@@ -732,6 +862,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         isRead: false,
       });
     }
+
+    saveToHistory({ type: 'ADD_USER', payload: newUser });
     
     return { success: true, message: 'Пользователь успешно создан' };
   };
@@ -772,7 +904,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const deleteUser = (userId: string) => {
-    dispatch({ type: 'DELETE_USER', payload: userId });
+    const userToDelete = state.users.find(u => u.id === userId);
+    if (userToDelete) {
+      dispatch({ type: 'DELETE_USER', payload: userId });
+      saveToHistory({ 
+        type: 'DELETE_USER', 
+        payload: userId,
+        inverse: userToDelete
+      });
+    }
   };
 
   const addBoard = (boardData: Omit<Board, 'id' | 'createdAt' | 'updatedAt' | 'code' | 'memberIds'>) => {
@@ -797,6 +937,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       };
       dispatch({ type: 'UPDATE_USER', payload: { id: state.currentUser.id, updates: updatedUser } });
     }
+
+    saveToHistory({ type: 'ADD_BOARD', payload: newBoard });
   };
 
   const updateBoard = (boardId: string, updates: Partial<Board>) => {
@@ -840,6 +982,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         dispatch({ type: 'SET_CURRENT_BOARD', payload: remainingBoards[0].id });
       }
     }
+
+    saveToHistory({ 
+      type: 'DELETE_BOARD', 
+      payload: boardId,
+      inverse: board
+    });
   };
 
   const setCurrentBoard = (boardId: string) => {
@@ -897,6 +1045,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     redoLastAction,
     canUndo,
     canRedo,
+    addComment,
+    updateComment,
+    deleteComment,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

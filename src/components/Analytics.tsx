@@ -8,6 +8,7 @@ import {
   Clock,
   AlertTriangle,
   Calendar,
+  FileText,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { format, subDays, isAfter, isBefore, startOfMonth, endOfMonth, eachMonthOfInterval, subMonths } from 'date-fns';
@@ -125,7 +126,7 @@ export function Analytics() {
       {/* Обзорная статистика */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 mb-6 md:mb-8">
         <StatCard
-          icon={CheckCircle2}
+          icon={FileText}
           title="ВСЕГО ЗАДАЧ"
           value={totalTasks}
           subtitle={`${completionRate}% ВЫПОЛНЕНО`}
@@ -158,7 +159,7 @@ export function Analytics() {
         {/* Распределение по статусам */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-6">
           <h3 className="text-md md:text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
-            <PieChart className="w-4 h-4 md:w-5 md:h-5" style={{ color: '#ff7875' }} />
+            <PieChart className="w-4 h-4 md:w-5 md:h-5" style={{ color: '#fbffab' }} />
             <span className="uppercase">РАСПРЕДЕЛЕНИЕ ПО СТАТУСАМ</span>
           </h3>
           <div className="space-y-3 md:space-y-4">
@@ -171,15 +172,18 @@ export function Analytics() {
                 <span className="text-xs md:text-sm font-medium text-gray-900">{createdTasks}</span>
                 <div className="w-16 md:w-20 bg-gray-200 rounded-full h-2">
                   <div 
-                    className="bg-gray-300 h-2 rounded-full" 
-                    style={{ width: `${totalTasks > 0 ? (createdTasks / totalTasks) * 100 : 0}%` }}
+                    className="h-2 rounded-full" 
+                    style={{ 
+                      background: 'linear-gradient(90deg, #c2e1fc 0%, #c2e1fc 100%)',
+                      width: `${totalTasks > 0 ? (createdTasks / totalTasks) * 100 : 0}%` 
+                    }}
                   ></div>
                 </div>
               </div>
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <div className="w-3 h-3 md:w-4 md:h-4 rounded" style={{ backgroundColor: priorityColors.medium }}></div>
+                <div className="w-3 h-3 md:w-4 md:h-4 rounded" style={{ backgroundColor: '#fcfac2' }}></div>
                 <span className="text-xs md:text-sm text-gray-700 uppercase">В ПРОЦЕССЕ</span>
               </div>
               <div className="flex items-center space-x-2">
@@ -188,7 +192,7 @@ export function Analytics() {
                   <div 
                     className="h-2 rounded-full" 
                     style={{ 
-                      backgroundColor: priorityColors.medium,
+                      background: 'linear-gradient(90deg, #fcfac2 0%, #fcfac2 100%)',
                       width: `${totalTasks > 0 ? (inProgressTasks / totalTasks) * 100 : 0}%` 
                     }}
                   ></div>
@@ -197,7 +201,7 @@ export function Analytics() {
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <div className="w-3 h-3 md:w-4 md:h-4 rounded" style={{ backgroundColor: priorityColors.low }}></div>
+                <div className="w-3 h-3 md:w-4 md:h-4 rounded" style={{ backgroundColor: '#c4fcc2' }}></div>
                 <span className="text-xs md:text-sm text-gray-700 uppercase">ВЫПОЛНЕНО</span>
               </div>
               <div className="flex items-center space-x-2">
@@ -206,7 +210,7 @@ export function Analytics() {
                   <div 
                     className="h-2 rounded-full" 
                     style={{ 
-                      backgroundColor: priorityColors.low,
+                      background: 'linear-gradient(90deg, #c4fcc2 0%, #c4fcc2 100%)',
                       width: `${totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0}%` 
                     }}
                   ></div>
@@ -258,7 +262,7 @@ export function Analytics() {
       {/* Производительность пользователей */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-6 mb-6 md:mb-8">
         <h3 className="text-md md:text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
-          <Users className="w-4 h-4 md:w-5 md:h-5" style={{ color: '#ff7875' }} />
+          <Users className="w-4 h-4 md:w-5 md:h-5" style={{ color: '#fab9e2' }} />
           <span className="uppercase">ПРОИЗВОДИТЕЛЬНОСТЬ ПОЛЬЗОВАТЕЛЕЙ</span>
         </h3>
         

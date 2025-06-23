@@ -17,6 +17,7 @@ import {
   Edit,
   Undo,
   Redo,
+  Book,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { BoardModal } from './BoardModal';
@@ -24,8 +25,8 @@ import { ProfileModal } from './ProfileModal';
 import { NotificationPanel } from './NotificationPanel';
 
 interface HeaderProps {
-  currentView: 'board' | 'calendar' | 'users' | 'analytics' | 'profile';
-  onViewChange: (view: 'board' | 'calendar' | 'users' | 'analytics' | 'profile') => void;
+  currentView: 'board' | 'calendar' | 'users' | 'analytics' | 'profile' | 'manual';
+  onViewChange: (view: 'board' | 'calendar' | 'users' | 'analytics' | 'profile' | 'manual') => void;
   onCreateTask: () => void;
 }
 
@@ -361,6 +362,18 @@ export function Header({ currentView, onViewChange, onCreateTask }: HeaderProps)
               <Users className="w-5 h-5" style={{ color: currentView === 'users' ? 'white' : iconColor }} />
               <span className="uppercase">ПОЛЬЗОВАТЕЛИ</span>
             </button>
+            <button
+              onClick={() => onViewChange('manual')}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+                currentView === 'manual'
+                  ? 'text-white'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+              style={{ backgroundColor: currentView === 'manual' ? iconColor : 'transparent' }}
+            >
+              <Book className="w-5 h-5" style={{ color: currentView === 'manual' ? 'white' : iconColor }} />
+              <span className="uppercase">РУКОВОДСТВО</span>
+            </button>
           </nav>
         </div>
 
@@ -487,6 +500,18 @@ export function Header({ currentView, onViewChange, onCreateTask }: HeaderProps)
         >
           <UserIcon className="w-4 h-4" style={{ color: currentView === 'profile' ? 'white' : iconColor }} />
           <span className="text-xs uppercase">ПРОФИЛЬ</span>
+        </button>
+        <button
+          onClick={() => onViewChange('manual')}
+          className={`flex-shrink-0 flex items-center justify-center space-x-1 py-2 px-3 rounded-md font-medium transition-colors ${
+            currentView === 'manual'
+              ? 'text-white shadow-sm'
+              : 'text-gray-600'
+          }`}
+          style={{ backgroundColor: currentView === 'manual' ? '#B6C2FC' : 'transparent' }}
+        >
+          <Book className="w-4 h-4" style={{ color: currentView === 'manual' ? 'white' : iconColor }} />
+          <span className="text-xs uppercase">РУКОВОДСТВО</span>
         </button>
       </nav>
 

@@ -34,7 +34,7 @@ interface TaskModalProps {
 }
 
 export function TaskModal({ task, isOpen, onClose, defaultStatus = 'created' }: TaskModalProps) {
-  const { users, currentUser, addTask, updateTask, deleteTask, currentBoardId } = useApp();
+  const { users, currentUser, addTask, updateTask, deleteTask, currentBoardId, addComment, updateComment, deleteComment } = useApp();
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -186,16 +186,25 @@ export function TaskModal({ task, isOpen, onClose, defaultStatus = 'created' }: 
   };
 
   const handleAddComment = () => {
-    if (!newComment.trim()) return;
+    if (!newComment.trim() || currentUser?.role !== 'admin') return;
 
-    const comment: Comment = {
-      id: Date.now().toString(),
-      userId: currentUser?.id || '',
-      content: newComment,
-      createdAt: new Date().toISOString(),
-    };
-
-    setComments([...comments, comment]);
+    if (task) {
+      addComment(task.id, newComment);
+      setComments([...comments, {
+        id: Date.now().toString(),
+        userId: currentUser.id,
+        content: newComment,
+        createdAt: new Date().toISOString(),
+      }]);
+    } else {
+      const comment: Comment = {
+        id: Date.now().toString(),
+        userId: currentUser?.id || '',
+        content: newComment,
+        createdAt: new Date().toISOString(),
+      };
+      setComments([...comments, comment]);
+    }
     setNewComment('');
   };
 
@@ -210,6 +219,10 @@ export function TaskModal({ task, isOpen, onClose, defaultStatus = 'created' }: 
   const handleSaveComment = (commentId: string) => {
     if (!editingCommentText.trim()) return;
 
+    if (task) {
+      updateComment(task.id, commentId, editingCommentText);
+    }
+    
     setComments(comments.map(comment => 
       comment.id === commentId 
         ? { ...comment, content: editingCommentText }
@@ -221,6 +234,9 @@ export function TaskModal({ task, isOpen, onClose, defaultStatus = 'created' }: 
 
   const handleDeleteComment = (commentId: string) => {
     if (window.confirm('Вы уверены, что хотите удалить этот комментарий?')) {
+      if (task) {
+        deleteComment(task.id, commentId);
+      }
       setComments(comments.filter(comment => comment.id !== commentId));
     }
   };
@@ -368,7 +384,7 @@ export function TaskModal({ task, isOpen, onClose, defaultStatus = 'created' }: 
         formattedText = selectedText;
     }
 
-    const newValue = textarea.value.substring(0, start) + formattedText + textarea.value.substring(end);
+    const newValue = textarea.value.substring(0, start) +  formattedText + textarea.value.substring(end);
     setFormData({ ...formData, description: newValue });
     
     setTimeout(() => {
@@ -406,7 +422,7 @@ export function TaskModal({ task, isOpen, onClose, defaultStatus = 'created' }: 
 
   // Проверка прав на редактирование/удаление комментариев
   const canEditComment = (comment: Comment) => {
-    return currentUser?.role === 'admin' || comment.userId === currentUser?.id;
+    return currentUser?.role === 'admin';
   };
 
   const handleCancelEdit = () => {
@@ -833,11 +849,11 @@ export function TaskModal({ task, isOpen, onClose, defaultStatus = 'created' }: 
               </div>
             </div>
 
-            {/* Раздел комментариев */}
-            {task && (
+            {/* Раздел комментариев - только для администраторов */}
+            {currentUser?.role === 'admin' && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-3 uppercase">
-                  КОММЕНТАРИИ ({comments.length})
+                  КОММЕНТАРИИ ({comments.length}) - ТОЛЬКО ДЛЯ АДМИНИСТРАТОРОВ
                 </label>
                 
                 <div className="space-y-3 mb-4 max-h-40 overflow-y-auto">

@@ -8,30 +8,35 @@ import { UserManagement } from './components/UserManagement';
 import { Analytics } from './components/Analytics';
 import { ProfileModal } from './components/ProfileModal';
 import { TaskModal } from './components/TaskModal';
+import { ManualPage } from './components/ManualPage';
 
 function AppContent() {
   const { isAuthenticated, setLastView, getLastView } = useApp();
-  const [currentView, setCurrentView] = useState<'board' | 'calendar' | 'users' | 'analytics' | 'profile'>('board');
+  const [currentView, setCurrentView] = useState<'board' | 'calendar' | 'users' | 'analytics' | 'profile' | 'manual'>('board');
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   // Восстановление последнего представления при загрузке
   useEffect(() => {
     if (isAuthenticated) {
       const lastView = getLastView();
-      if (lastView && ['board', 'calendar', 'users', 'analytics', 'profile'].includes(lastView)) {
+      if (lastView && ['board', 'calendar', 'users', 'analytics', 'profile', 'manual'].includes(lastView)) {
         setCurrentView(lastView as any);
       }
     }
   }, [isAuthenticated, getLastView]);
 
   // Сохранение текущего представления
-  const handleViewChange = (view: 'board' | 'calendar' | 'users' | 'analytics' | 'profile') => {
+  const handleViewChange = (view: 'board' | 'calendar' | 'users' | 'analytics' | 'profile' | 'manual') => {
     setCurrentView(view);
     setLastView(view);
   };
 
   if (!isAuthenticated) {
     return <AuthPage />;
+  }
+
+  if (currentView === 'manual') {
+    return <ManualPage onClose={() => handleViewChange('board')} />;
   }
 
   const renderView = () => {
